@@ -1199,8 +1199,8 @@ static void setupTarget()
     digitalWrite(GPIO_PIN_ANT_CTRL_COMPL, !diversityAntennaState);
   }
 
-  setupTargetCommon();
-  setupSerial();
+  setupTargetCommon();//初始化i2c通讯的，通用代码用不到
+  setupSerial();//初始化debug串口通讯的（有可能是和CSRF通讯）
 }
 
 bool setupHardwareFromOptions()
@@ -1246,8 +1246,8 @@ void setup()
 {
   if (setupHardwareFromOptions())
   {
-    initUID();
-    setupTarget();
+    initUID();//获取mac地址，放到全局变量
+    setupTarget();//初始化io口，i2c，串口通讯
     // Register the devices with the framework
     devicesRegister(ui_devices, ARRAY_SIZE(ui_devices));
     // Initialise the devices

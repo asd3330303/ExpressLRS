@@ -26,7 +26,7 @@ static void setupWire()
     {
         auto pin = GPIO_PIN_PWM_OUTPUTS[ch];
         auto pwm = config.GetPwmChannel(ch);
-        // if the PWM pin is nominated as SDA or SCL, and it's not configured for I2C then undef the pins
+        // 如果PWM引脚被指定为SDA或SCL，并且未配置为I2C，则取消I2C引脚
         if ((pin == GPIO_PIN_SCL && pwm->val.mode != somSCL) || (pin == GPIO_PIN_SDA && pwm->val.mode != somSDA))
         {
             gpio_scl = UNDEF_PIN;
