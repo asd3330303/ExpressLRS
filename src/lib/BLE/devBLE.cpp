@@ -54,8 +54,9 @@ void BluetoothJoystickBegin()
 {
     // bleGamepad is null if it hasn't been started yet
     if (bleGamepad != nullptr)
-        return;
+        return;//已经启动蓝牙了
 
+    //启动蓝牙
     // construct the BLE immediately to prevent reentry from events/timeout
     bleGamepad = new ELRSGamepad();
 

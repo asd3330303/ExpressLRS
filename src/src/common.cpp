@@ -108,7 +108,7 @@ uint8_t ExpressLRS_currTlmDenom;
 expresslrs_mod_settings_s *ExpressLRS_currAirRate_Modparams;
 expresslrs_rf_pref_params_s *ExpressLRS_currAirRate_RFperfParams;
 
-connectionState_e connectionState = disconnected;
+connectionState_e connectionState = disconnected;//这个模式是共用的，可以用于蜂鸣器的声音，也可用于升级模式啥的
 bool connectionHasModelMatch;
 
 uint32_t ChannelData[CRSF_NUM_CHANNELS];      // Current state of channels, CRSF format

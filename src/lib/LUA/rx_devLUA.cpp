@@ -408,26 +408,32 @@ static void registerLuaParameters()
 
 static int event()
 {
-  setLuaTextSelectionValue(&luaSerialProtocol, config.GetSerialProtocol());
-  setLuaTextSelectionValue(&luaFailsafeMode, config.GetFailsafeMode());
+  setLuaTextSelectionValue(&luaSerialProtocol, config.GetSerialProtocol());//设置输出的信号，csrf格式/sbus/dji
+  setLuaTextSelectionValue(&luaFailsafeMode, config.GetFailsafeMode()); //设置时空保护状态
 
   if (GPIO_PIN_ANT_CTRL != UNDEF_PIN)
   {
-    setLuaTextSelectionValue(&luaAntennaMode, config.GetAntennaMode());
+    setLuaTextSelectionValue(&luaAntennaMode, config.GetAntennaMode());//设置天线模式：单天线还是多天线
   }
 
   // Gemini Mode
   if (isDualRadio())
-  {
+  {//如果是多天线
+  
+  //Gemini 比 Diversity 厉害
+    //Diversity ：两套无线ic，mcu同时处理，选取rssi好的无线ic的数据
+    //Gemini：在Diversity的基础上两套无线ic的频率不同，这需要发射器也是两套无线ic
     setLuaTextSelectionValue(&luaDiversityMode, config.GetAntennaMode()); // Reusing SetAntennaMode since both GPIO_PIN_ANTENNA_SELECT and GPIO_PIN_NSS_2 will not be defined together.
   }
 
+//设置回传数据发射功率
 #if defined(POWER_OUTPUT_VALUES)
   // The last item (for MatchTX) will be MaxPower - MinPower + 1
   uint8_t luaPwrVal = (config.GetPower() == PWR_MATCH_TX) ? POWERMGNT::getMaxPower() + 1 : config.GetPower();
   setLuaTextSelectionValue(&luaTlmPower, luaPwrVal - POWERMGNT::getMinPower());
 #endif
 
+//设置pwm输出
 #if defined(GPIO_PIN_PWM_OUTPUTS)
   if (OPT_HAS_SERVO_OUTPUT)
   {
@@ -438,13 +444,13 @@ static int event()
   }
 #endif
 
-  if (config.GetModelId() == 255)
+  if (config.GetModelId() == 255)//模型号，遥控器设置的模型号
   {
     setLuaStringValue(&luaModelNumber, "Off");
   }
   else
   {
-    itoa(config.GetModelId(), modelString, 10);
+    itoa(config.GetModelId(), modelString, 10);//将ModelId的变量变成字符串赋值到modelString数组中
     setLuaStringValue(&luaModelNumber, modelString);
   }
   return DURATION_IMMEDIATELY;

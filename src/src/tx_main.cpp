@@ -77,25 +77,26 @@ StubbornReceiver TelemetryReceiver;
 StubbornSender MspSender;
 uint8_t CRSFinBuffer[CRSF_MAX_PACKET_LEN+1];
 
+//这个是task列表，前面是任务对应的指针，后面是指定的cpu运行核心
 device_affinity_t ui_devices[] = {
-  {&CRSF_device, 1},
-#ifdef HAS_LED
+  {&CRSF_device, 1},              //发射模块才有
+#ifdef HAS_LED                    //三个引脚分别控制led的rgb
   {&LED_device, 0},
 #endif
-#ifdef HAS_RGB
+#ifdef HAS_RGB                    //ws2812类型的led
   {&RGB_device, 0},
 #endif
-  {&LUA_device, 1},
-#if defined(USE_TX_BACKPACK)
-  {&Backpack_device, 0},
+  {&LUA_device, 1},               //接收机才有，设置串口信号（sbus、csrf），设置几个天线，回传功率，pwm输出，接收机更新模型
+#if defined(USE_TX_BACKPACK)      //（没用）Backpack 是一种附加设备，可使用 ESPnow 协议促进 ExpressLRS 模块与其他设备（例如护目镜上的视频接收器）之间的无线通信(可以实现切换信道)。
+  {&Backpack_device, 0},          //发射模块需要一个主控，一个额外的esp作为esp now的节点；眼镜上需要一个esp
 #endif
-#ifdef HAS_BLE
+#ifdef HAS_BLE                    //目前看没用
   {&BLE_device, 0},
 #endif
-#ifdef HAS_BUZZER
+#ifdef HAS_BUZZER                 //有蜂鸣器
   {&Buzzer_device, 0},
 #endif
-#ifdef HAS_WIFI
+#ifdef HAS_WIFI                   //ESP的都是打开的，按事件开不开wifi
   {&WIFI_device, 0},
 #endif
 #ifdef HAS_BUTTON
