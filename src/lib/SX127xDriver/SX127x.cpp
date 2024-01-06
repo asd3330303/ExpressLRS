@@ -697,7 +697,7 @@ void ICACHE_RAM_ATTR SX127xDriver::IsrCallback(SX12XX_Radio_Number_t radioNumber
     SX12XX_Radio_Number_t irqClearRadio = radioNumber;
 
     uint8_t irqStatus = instance->GetIrqFlags(radioNumber);
-    if (irqStatus & SX127X_CLEAR_IRQ_FLAG_TX_DONE)
+    if (irqStatus & SX127X_CLEAR_IRQ_FLAG_TX_DONE)//判断是接收中断还是发射中断
     {
         RFAMP.TXRXdisable();
         instance->TXnbISR();

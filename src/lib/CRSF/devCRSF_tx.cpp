@@ -31,6 +31,7 @@ static int timeout()
 static int event()
 {
     // An event should be generated every time the TX power changes
+    //每次TX功率变化时都应该生成一个事件
     CRSF::LinkStatistics.uplink_TX_Power = powerToCrsfPower(PowerLevelContainer::currPower());
     return DURATION_IGNORE;
 }

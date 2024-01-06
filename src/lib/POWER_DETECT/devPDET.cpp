@@ -10,6 +10,7 @@
 #define SKY85321_MAX_DBM_INPUT 5
 
 // SKY85321_PDET_SLOPE/INTERCEPT convert mV from analogRead() to dBm
+//SKY85321_PDET_SLOPE/INTERCEPT将mV从analoggread()转换为dBm
 #if !defined(SKY85321_PDET_SLOPE) || !defined(SKY85321_PDET_INTERCEPT)
   #error "SKY85321 requires SKY85321_PDET_SLOPE and SKY85321_PDET_INTERCEPT"
 #endif

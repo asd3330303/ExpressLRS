@@ -341,6 +341,7 @@ static void luadevUpdateBackpackOpts()
   if (config.GetBackpackDisable())
   {
     // If backpack is disabled, set all the Backpack select options to "Disabled"
+    // 这些不是文件夹名称，只是单位字段中的字符串标签
     LUA_FIELD_HIDE(luaDvrAux);
     LUA_FIELD_HIDE(luaDvrStartDelay);
     LUA_FIELD_HIDE(luaDvrStopDelay);
@@ -541,6 +542,7 @@ static void luadevUpdateBadGood()
 
 /***
  * @brief: Update the dynamic strings used for folder names and labels
+ * 更新用于文件夹名称和标签的动态字符串
  ***/
 void luadevUpdateFolderNames()
 {
@@ -548,6 +550,7 @@ void luadevUpdateFolderNames()
   updateFolderName_VtxAdmin();
 
   // These aren't folder names, just string labels slapped in the units field generally
+  //这些不是文件夹名称，只是在units字段中的字符串标签
   luadevUpdateTlmBandwidth();
   luadevUpdateBackpackOpts();
 }

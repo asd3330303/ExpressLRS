@@ -54,6 +54,15 @@ void ICACHE_RAM_ATTR DynamicPower_TelemetryUpdate(int8_t snrScaled)
     dynpower_updated = snrScaled;
 }
 
+/**
+ * @brief 动态功率调节，主要目的是省电和控制温度，有些成品elrs发射机在全速率+全功率工作时发热很恐怖的。
+
+一共有三种触发功率调节的条件。开关触发，连接质量下降触发，rssi值触发。
+
+当连接质量急速下降，或者是低于某个阈值，把发射机功率开到最大。 作者：野生技术宅日常 https://www.bilibili.com/read/cv16728380/ 出处：bilibili
+ * 
+ * @param now 
+ */
 void DynamicPower_Update(uint32_t now)
 {
   int8_t snrScaled = dynpower_updated;
@@ -75,6 +84,7 @@ void DynamicPower_Update(uint32_t now)
   if (!config.GetDynamicPower())
   {
     // if RSSI is dropped enough, inc power back to the configured power
+    // 如果RSSI下降到一定程度，则将电源恢复到配置的电源
     if (newTlmAvail && (rssi <= -20) &&  POWERMGNT::currPower() < (PowerLevels_e)config.GetPower())
     {
       DynamicPower_SetToConfigPower();
@@ -88,6 +98,7 @@ void DynamicPower_Update(uint32_t now)
 
   // =============  DYNAMIC_POWER_BOOST: Switch-triggered power boost up ==============
   // Or if telemetry is lost while armed (done up here because dynpower_updated is only updated on telemetry)
+  //或者如果遥测在武装时丢失(此处完成，因为dynpower_updated只在遥测时更新)
   uint8_t boostChannel = config.GetBoostChannel();
   bool armed = CRSF::IsArmed();
   if ((connectionState == disconnected && armed) ||
@@ -135,6 +146,7 @@ void DynamicPower_Update(uint32_t now)
   int32_t lq_diff = lq_avg - lq_current;
   dynpower_mavg_lq.add(lq_current);
   // if LQ drops quickly (DYNPOWER_LQ_BOOST_THRESH_DIFF) or critically low below DYNPOWER_LQ_BOOST_THRESH_MIN, immediately boost to the configured max power.
+  //如果LQ快速下降(DYNPOWER_LQ_BOOST_THRESH_DIFF)或低于DYNPOWER_LQ_BOOST_THRESH_MIN，立即升压到配置的最大功率。
   if (lq_diff >= DYNPOWER_LQ_BOOST_THRESH_DIFF || lq_current <= DYNPOWER_LQ_BOOST_THRESH_MIN)
   {
       DynamicPower_SetToConfigPower();

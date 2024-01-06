@@ -23,10 +23,10 @@ static bool sendEepromWrite = true;
 
 static enum VtxSendState_e
 {
-  VTXSS_UNKNOWN,   // Status of the remote side is unknown, so we should send immediately if connected
-  VTXSS_MODIFIED,  // Config is editied, should always be sent regardless of connect state
-  VTXSS_SENDING1, VTXSS_SENDING2, VTXSS_SENDING3,  VTXSS_SENDINGDONE, // Send the config 3x
-  VTXSS_CONFIRMED  // Status of remote side is consistent with our config
+  VTXSS_UNKNOWN,   // Status of the remote side is unknown, so we should send immediately if connected //远端状态未知，连接后应立即发送
+  VTXSS_MODIFIED,  // Config is editied, should always be sent regardless of connect state //配置是编辑的，无论连接状态如何都应该发送
+  VTXSS_SENDING1, VTXSS_SENDING2, VTXSS_SENDING3,  VTXSS_SENDINGDONE, // Send the config 3x //发送配置文件
+  VTXSS_CONFIRMED  // Status of remote side is consistent with our config //对端状态与配置一致
 } VtxSendState;
 
 void VtxTriggerSend()

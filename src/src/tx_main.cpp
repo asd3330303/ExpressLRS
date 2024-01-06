@@ -78,6 +78,12 @@ StubbornSender MspSender;
 uint8_t CRSFinBuffer[CRSF_MAX_PACKET_LEN+1];
 
 //这个是task列表，前面是任务对应的指针，后面是指定的cpu运行核心
+/*
+init和start只跑一次，evevt或timeout是周期跑的
+devicesInit()时会跑所有线程的init函数
+devicesStart()时会跑所有线程的start函数
+devicesUpdate 时会跑所有线程的event函数+timeout函数；timeout的触发周期是通过start函数返回值确定的，以及每次触发evevt也会返回下一次timeout时间
+ */
 device_affinity_t ui_devices[] = {
   {&CRSF_device, 1},              //发射模块才有
 #ifdef HAS_LED                    //三个引脚分别控制led的rgb
@@ -99,22 +105,22 @@ device_affinity_t ui_devices[] = {
 #ifdef HAS_WIFI                   //ESP的都是打开的，按事件开不开wifi
   {&WIFI_device, 0},
 #endif
-#ifdef HAS_BUTTON
+#ifdef HAS_BUTTON                 //按键初始化，接收机有1个按键，发射器有2个
   {&Button_device, 0},
 #endif
 #ifdef HAS_SCREEN
   {&Screen_device, 0},
 #endif
-#ifdef HAS_GSENSOR
-  {&Gsensor_device, 0},
+#ifdef HAS_GSENSOR                //重力传感器，用于分辨天线是不是垂直起来的，没看懂是干嘛用的
+  {&Gsensor_device, 0},           //普通的发射和接收都没有用到
 #endif
-#if defined(HAS_THERMAL) || defined(HAS_FAN)
+#if defined(HAS_THERMAL) || defined(HAS_FAN)  //发射模块才有，温度传感器+风扇，温度传感器型号为lm75a
   {&Thermal_device, 0},
 #endif
-#if defined(GPIO_PIN_PA_PDET)
+#if defined(GPIO_PIN_PA_PDET)     //获取发射功率的，通过adc口获取电压转化为dbm值从而调整发射功率
   {&PDET_device, 0},
 #endif
-  {&VTX_device, 0}
+  {&VTX_device, 0}                //像是连接状态的标识任务
 };
 
 #if defined(GPIO_PIN_ANT_CTRL)
@@ -173,6 +179,13 @@ void ICACHE_RAM_ATTR LinkStatsFromOta(OTA_LinkStats_s * const ls)
   MspSender.ConfirmCurrentPayload(ls->mspConfirm);
 }
 
+/**
+ * @brief 用于处理遥测包，回传信息的（接收机--》发射器）
+ * 
+ * @param status 
+ * @return true 
+ * @return false 
+ */
 bool ICACHE_RAM_ATTR ProcessTLMpacket(SX12xxDriverCommon::rx_status const status)
 {
   if (status != SX12xxDriverCommon::SX12XX_RX_OK)
@@ -385,9 +398,13 @@ void SetRFLinkRate(uint8_t index) // Set speed of RF link (hz)
   rfModeLastChangedMS = millis();
 }
 
+/**
+ * @brief 发射跳频实现
+ * 
+ */
 void ICACHE_RAM_ATTR HandleFHSS()
 {
-  uint8_t modresult = (OtaNonce + 1) % ExpressLRS_currAirRate_Modparams->FHSShopInterval;
+  uint8_t modresult = (OtaNonce + 1) % ExpressLRS_currAirRate_Modparams->FHSShopInterval;//每发完一个包就+1，FHSShopInterval是跳频间隔，间隔几个包之后就跳到下一个频点；使用取余操作，余数==0就跳频
   // If the next packet should be on the next FHSS frequency, do the hop
   if (!InBindingMode && modresult == 0)
   {
@@ -403,6 +420,10 @@ void ICACHE_RAM_ATTR HandleFHSS()
   }
 }
 
+/**
+ * @brief 间隔多少个包之后进入接收模式，实现和HandleFHSS()类似
+ * 
+ */
 void ICACHE_RAM_ATTR HandlePrepareForTLM()
 {
   // If TLM enabled and next packet is going to be telemetry, start listening to have a large receive window (time-wise)
@@ -460,7 +481,7 @@ void injectBackpackPanTiltRollData(uint32_t const now)
 void ICACHE_RAM_ATTR SendRCdataToRF()
 {
   uint32_t const now = millis();
-  // ESP requires word aligned buffer
+  // ESP requires word aligned buffer // ESP需要字对齐缓冲区
   WORD_ALIGNED_ATTR OTA_Packet_s otaPkt = {0};
   static uint8_t syncSlot;
 
@@ -473,15 +494,17 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
   uint8_t NonceFHSSresult = OtaNonce % ExpressLRS_currAirRate_Modparams->FHSShopInterval;
   bool WithinSyncSpamResidualWindow = now - rfModeLastChangedMS < syncSpamAResidualTimeMS;
 
-  // Sync spam only happens on slot 1 and 2 and can't be disabled
+  // Sync spam only happens on slot 1 and 2 and can't be disabled //同步垃圾邮件只发生在插槽1和2，不能禁用
   if ((syncSpamCounter || WithinSyncSpamResidualWindow) && (NonceFHSSresult == 1 || NonceFHSSresult == 2))
   {
     otaPkt.std.type = PACKET_TYPE_SYNC;
     GenerateSyncPacketData(OtaIsFullRes ? &otaPkt.full.sync.sync : &otaPkt.std.sync);
-    syncSlot = 0; // reset the sync slot in case the new rate (after the syncspam) has a lower FHSShopInterval
+    syncSlot = 0; // reset the sync slot in case the new rate (after the syncspam) has a lower FHSShopInterval //重置同步槽，以防新速率(在syncspam之后)具有较低的FHSShopInterval
   }
   // Regular sync rotates through 4x slots, twice on each slot, and telemetry pushes it to the next slot up
   // But only on the sync FHSS channel and with a timed delay between them
+//常规同步通过发送4次，每个RF两次，遥测将其推到下一个RF
+//但是只在同步FHSS通道上，并且RF之间有一个定时延迟
   else if ((!skipSync) && ((syncSlot / 2) <= NonceFHSSresult) && (now - SyncPacketLastSent > SyncInterval) && (Radio.currFreq == GetInitialFreq()))
   {
     otaPkt.std.type = PACKET_TYPE_SYNC;
@@ -507,6 +530,7 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
       }
 
       // send channel data next so the channel messages also get sent during msp transmissions
+      //接下来发送通道数据，以便在MSP传输期间也发送通道消息
       NextPacketIsMspData = false;
       // counter can be increased even for normal msp messages since it's reset if a real bind message should be sent
       BindingSendCount++;
@@ -742,16 +766,24 @@ void ModelUpdateReq()
 static void ConfigChangeCommit()
 {
   // Adjust the air rate based on teh current baud rate
+  // 请根据当前波特率调整空气速率
   auto index = adjustPacketRateForBaud(config.GetRate());
   config.SetRate(index);
 
   // Write the uncommitted eeprom values (may block for a while)
+  //写入未提交的eeprom值(可能阻塞一段时间)
   config.Commit();
+
   // Change params after the blocking finishes as a rate change will change the radio freq
+  //在阻塞结束后改变参数，因为速率改变会改变射频
   ChangeRadioParams();
+
   // Clear the commitInProgress flag so normal processing resumes
+  //清除commitInProgress标志，恢复正常处理
   commitInProgress = false;
+
   // UpdateFolderNames is expensive so it is called directly instead of in event() which gets called a lot
+  // UpdateFolderNames是昂贵的，所以它被直接调用，而不是在event()中被调用很多
   luadevUpdateFolderNames();
   devicesTriggerEvent();
 }
@@ -761,9 +793,11 @@ static void CheckConfigChangePending()
   if (config.IsModified() || ModelUpdatePending)
   {
     // Keep transmitting sync packets until the spam counter runs out
+    // 继续传输同步数据包，直到垃圾邮件计数器耗尽
     if (syncSpamCounter > 0)
       return;
 
+    // 等待发送完成
 #if !defined(PLATFORM_STM32) || defined(TARGET_USE_EEPROM)
     while (busyTransmitting); // wait until no longer transmitting
 #else
@@ -785,11 +819,14 @@ static void CheckConfigChangePending()
       nonceAdvance();
 #endif
     // Set the commitInProgress flag to prevent any other RF SPI traffic during the commit from RX or scheduled TX
+    // 这个类似于锁
     commitInProgress = true;
+
     // If telemetry expected in the next interval, the radio was in RX mode
     // and will skip sending the next packet when the timer resumes.
     // Return to normal send mode because if the skipped packet happened
     // to be on the last slot of the FHSS the skip will prevent FHSS
+    //如果在下一个时间间隔中需要进行遥测，则无线电处于RX模式，当计时器恢复时将跳过发送下一个数据包。返回到正常发送模式，因为如果跳过的数据包恰好在FHSS的最后一个槽上，跳过将阻止FHSS
     if (TelemetryRcvPhase != ttrpTransmitting)
     {
       Radio.SetTxIdleMode();
@@ -839,8 +876,10 @@ void ICACHE_RAM_ATTR TXdoneISR()
 static void UpdateConnectDisconnectStatus()
 {
   // Number of telemetry packets which can be lost in a row before going to disconnected state
+  // 在进入断开连接状态之前，可以连续丢失的遥测数据包数
   constexpr unsigned RX_LOSS_CNT = 5;
   // Must be at least 512ms and +2 to account for any rounding down and partial millis()
+  // 必须至少512ms和+2，以考虑任何舍入和部分毫秒()
   const uint32_t msConnectionLostTimeout = std::max((uint32_t)512U,
     (uint32_t)ExpressLRS_currTlmDenom * ExpressLRS_currAirRate_Modparams->interval / (1000U / RX_LOSS_CNT)
     ) + 2U;
@@ -863,6 +902,7 @@ static void UpdateConnectDisconnectStatus()
     }
   }
   // If past RX_LOSS_CNT, or in awaitingModelId state for longer than DisconnectTimeoutMs, go to disconnected
+  // 如果超过RX_LOSS_CNT，或者处于等待modelid状态的时间超过DisconnectTimeoutMs，则转到disconnected
   else if (connectionState == connected ||
     (now - rfModeLastChangedMS) > ExpressLRS_currAirRate_RFperfParams->DisconnectTimeoutMs)
   {
@@ -1249,7 +1289,9 @@ void setup()
   {
     initUID();//获取mac地址，放到全局变量
     setupTarget();//初始化io口，i2c，串口通讯
+
     // Register the devices with the framework
+    // 初始化所有的线程
     devicesRegister(ui_devices, ARRAY_SIZE(ui_devices));
     // Initialise the devices
     devicesInit();
@@ -1282,7 +1324,7 @@ void setup()
     #else
     if (GPIO_PIN_SCK != UNDEF_PIN)
     {
-      init_success = Radio.Begin();
+      init_success = Radio.Begin();//初始化spi引脚和发送/接收中断回调函数。实际调用bool SX127xDriver::Begin()初始化回调函数
     }
     else
     {
@@ -1308,7 +1350,7 @@ void setup()
   #if defined(Regulatory_Domain_EU_CE_2400)
       BeginClearChannelAssessment();
   #endif
-      hwTimer::init(nullptr, timerCallback);
+      hwTimer::init(nullptr, timerCallback);//注册中断回调
       connectionState = noCrossfire;
     }
   }
@@ -1332,7 +1374,7 @@ void loop()
 {
   uint32_t now = millis();
 
-  HandleUARTout(); // Only used for non-CRSF output
+  HandleUARTout(); // Only used for non-CRSF output //仅用于非crsf输出
 
   #if defined(USE_BLE_JOYSTICK)
   if (connectionState != bleJoystick && connectionState != noCrossfire) // Wait until the correct crsf baud has been found
@@ -1354,6 +1396,7 @@ void loop()
 
   #if defined(PLATFORM_ESP8266) || defined(PLATFORM_ESP32)
     // If the reboot time is set and the current time is past the reboot time then reboot.
+    //如果设置了重启时间，并且当前时间超过了重启时间，则重启。
     if (rebootTime != 0 && now > rebootTime) {
       ESP.restart();
     }
@@ -1390,8 +1433,8 @@ void loop()
   }
 
   CheckReadyToSend();
-  CheckConfigChangePending();
-  DynamicPower_Update(now);
+  CheckConfigChangePending();//检查是否更改了配置，改了就写入eeprom保存
+  DynamicPower_Update(now);//动态功率调节
   VtxPitmodeSwitchUpdate();
 
   /* Send TLM updates to handset if connected + reporting period
@@ -1436,11 +1479,11 @@ void loop()
     {
       uint8_t* mspData;
       uint8_t mspLen;
-      CRSF::GetMspMessage(&mspData, &mspLen);
+      CRSF::GetMspMessage(&mspData, &mspLen);//从遥控器获取数据
       // if we have a new msp package start sending
       if (mspData != nullptr)
       {
-        MspSender.SetDataToTransmit(mspData, mspLen);
+        MspSender.SetDataToTransmit(mspData, mspLen);//无线发射
         mspTransferActive = true;
       }
     }

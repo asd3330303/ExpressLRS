@@ -247,6 +247,7 @@ bool hardware_init(EspFlashStream &strmFlash)
     return true;
 }
 
+//io口定义在这个目录下D:\Desktop\project\ELRS\ExpressLRS\src\hardware\TX\DIY 2400 Mini.json
 const int hardware_pin(nameType name)
 {
     return hardware[name].int_value;

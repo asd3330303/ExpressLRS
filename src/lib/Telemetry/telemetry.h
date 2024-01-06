@@ -70,7 +70,7 @@ public:
     bool AppendTelemetryPackage(uint8_t *package);
 private:
     void AppendToPackage(volatile crsf_telemetry_package_t *current);
-    uint8_t CRSFinBuffer[CRSF_MAX_PACKET_LEN];
+    uint8_t CRSFinBuffer[CRSF_MAX_PACKET_LEN];//发射机收到接收机回传数据的buff
     telemetry_state_s telemetry_state;
     uint8_t currentTelemetryByte;
     uint8_t currentPayloadIndex;

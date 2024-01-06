@@ -59,7 +59,7 @@ uint32_t CRSF::GoodPktsCountResult = 0;
 uint32_t CRSF::BadPktsCountResult = 0;
 
 uint8_t CRSF::modelId = 0;
-bool CRSF::ForwardDevicePings = false;
+bool CRSF::ForwardDevicePings = false;//true表示和接收机连接上，false表示失联
 bool CRSF::elrsLUAmode = false;
 
 /// OpenTX mixer sync ///
@@ -100,12 +100,14 @@ void CRSF::Begin()
 {
     DBGLN("About to start CRSF task...");
 
+    //允许在第一次调用UARTwdt()函数之前有延迟
     UARTwdtLastChecked = millis() + UARTwdtInterval; // allows a delay before the first time the UARTwdt() function is called
 
 #if defined(PLATFORM_ESP32)
     portDISABLE_INTERRUPTS();
     if (GPIO_PIN_RCSIGNAL_RX != GPIO_PIN_RCSIGNAL_TX)
     {
+        //在一个满的UART上，我们将首先开始反向检查
         UARTinverted = false; // on a full UART we will start uninverted checking first
     }
     CRSF::Port.begin(UARTrequestedBaud, SERIAL_8N1,
@@ -113,7 +115,7 @@ void CRSF::Begin()
                      false, 500);
     CRSF::duplex_set_RX();
     portENABLE_INTERRUPTS();
-    flush_port_input();
+    flush_port_input();//清空rx ringbuf的数据
     if (esp_reset_reason() != ESP_RST_POWERON)
     {
         modelId = rtcModelId;
@@ -173,6 +175,10 @@ void CRSF::End()
     DBGLN("CRSF UART END");
 }
 
+/**
+ * @brief 清空rx ringbuf的数据
+ * 
+ */
 void CRSF::flush_port_input(void)
 {
     // Make sure there is no garbage on the UART at the start
@@ -338,7 +344,7 @@ void ICACHE_RAM_ATTR CRSF::RcPacketToChannelsData() // data is packed as 11 bits
     uint8_t const * const payload = (uint8_t const * const)&CRSF::inBuffer.asRCPacket_t.channels;
     constexpr unsigned srcBits = 11;
     constexpr unsigned dstBits = 11;
-    constexpr unsigned inputChannelMask = (1 << srcBits) - 1;
+    constexpr unsigned inputChannelMask = (1 << srcBits) - 1;//11位 == 2048
     constexpr unsigned precisionShift = dstBits - srcBits;
 
     // code from BetaFlight rx/crsf.cpp / bitpacker_unpack
@@ -397,7 +403,7 @@ bool ICACHE_RAM_ATTR CRSF::ProcessPacket()
         // but for pings (which are sent when the user loads Lua) do not forward
         // unless connected
         if (ForwardDevicePings || packetType != CRSF_FRAMETYPE_DEVICE_PING)
-        {
+        {//不是心跳包就进入这里
             const uint8_t length = CRSF::inBuffer.asRCPacket_t.header.frame_size + 2;
             AddMspMessage(length, SerialInBuffer);
         }

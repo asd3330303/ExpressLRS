@@ -72,6 +72,7 @@ static int timeout()
         float x, y, z;
         gsensor.getGSensorData(&x, &y, &z);
         // Single bump while holding the radio antenna up and NOT armed is Loan/Bind
+        //没有解锁时并且天线垂直向上时，
         if (!CRSF::IsArmed() && bumps == 1 && fabs(x) < 0.5 && y < -0.8 && fabs(z) < 0.5)
         {
             lastBumpCommand = now;

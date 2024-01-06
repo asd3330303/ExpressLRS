@@ -32,6 +32,7 @@ void StubbornSender::ResetState()
 
 /***
  * Queues a message to send, will abort the current message if one is currently being transmitted
+ * 这里将要无线发送的数据放到队列里，要取通过GetCurrentPayload(uint8_t *outData, uint8_t maxLen)
  ***/
 void StubbornSender::SetDataToTransmit(uint8_t* dataToTransmit, uint8_t lengthToTransmit)
 {

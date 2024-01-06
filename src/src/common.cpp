@@ -111,7 +111,7 @@ expresslrs_rf_pref_params_s *ExpressLRS_currAirRate_RFperfParams;
 connectionState_e connectionState = disconnected;//这个模式是共用的，可以用于蜂鸣器的声音，也可用于升级模式啥的
 bool connectionHasModelMatch;
 
-uint32_t ChannelData[CRSF_NUM_CHANNELS];      // Current state of channels, CRSF format
+uint32_t ChannelData[CRSF_NUM_CHANNELS];      // Current state of channels, CRSF format //遥控器通道数据
 
 uint8_t MasterUID[6];                       // The definitive user UID
 uint8_t UID[6];                             // The currently running UID
