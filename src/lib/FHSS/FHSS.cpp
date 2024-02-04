@@ -6,6 +6,7 @@
 #if defined(RADIO_SX127X)
 #include "SX127xDriver.h"
 
+//这里定义的是fhss跳频的频率范围和频点数（比如说2.4g下面有80个频点）
 const fhss_config_t domains[] = {
     {"AU915",  FREQ_HZ_TO_REG_VAL(915500000), FREQ_HZ_TO_REG_VAL(926900000), 20},
     {"FCC915", FREQ_HZ_TO_REG_VAL(903500000), FREQ_HZ_TO_REG_VAL(926900000), 40},

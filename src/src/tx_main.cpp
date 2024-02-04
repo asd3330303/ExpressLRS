@@ -83,6 +83,7 @@ init和start只跑一次，evevt或timeout是周期跑的
 devicesInit()时会跑所有线程的init函数
 devicesStart()时会跑所有线程的start函数
 devicesUpdate 时会跑所有线程的event函数+timeout函数；timeout的触发周期是通过start函数返回值确定的，以及每次触发evevt也会返回下一次timeout时间
+static void deviceTask(void *pvArgs)线程也会跑evevt回调，（这个线程是专门跑下面这些东西的event的，和loop函数其实重复了）
  */
 device_affinity_t ui_devices[] = {
   {&CRSF_device, 1},              //发射模块才有

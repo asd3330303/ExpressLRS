@@ -114,7 +114,7 @@ static void servosUpdate(unsigned long now)
             uint16_t us = CRSF_to_US(crsfVal);
             // Flip the output around the mid-value if inverted
             // (1500 - usOutput) + 1500
-            if (chConfig->val.inverted)
+            if (chConfig->val.inverted)//这里用于翻转pwm输出
             {
                 us = 3000U - us;
             }

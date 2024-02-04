@@ -172,8 +172,11 @@ static void deviceTask(void *pvArgs)
     xSemaphoreGive(completeSemaphore);
     for (;;)
     {
+        //不断的运行不同线程里的event回调
         int delay = _devicesUpdate(millis());
+
         // sleep the core until the desired time or it's awakened by an event
+        // 让核心休眠，直到所需的时间，或者它被一个事件唤醒
         xSemaphoreTake(taskSemaphore, delay == DURATION_NEVER ? portMAX_DELAY : pdMS_TO_TICKS(delay));
     }
 }

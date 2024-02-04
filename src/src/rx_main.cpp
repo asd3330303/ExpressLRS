@@ -1015,15 +1015,16 @@ bool ICACHE_RAM_ATTR ProcessRFPacket(SX12xxDriverCommon::rx_status const status)
 
     LastValidPacket = now;
 
+    //判断包的类型
     switch (otaPktPtr->std.type)
     {
     case PACKET_TYPE_RCDATA: //Standard RC Data Packet
-        ProcessRfPacket_RC(otaPktPtr);
+        ProcessRfPacket_RC(otaPktPtr);//处理遥控相关的包，通过CRFS协议发给飞控  
         break;
     case PACKET_TYPE_MSPDATA:
-        ProcessRfPacket_MSP(otaPktPtr);
+        ProcessRfPacket_MSP(otaPktPtr);//处理设备配置ota等除了遥控信号之外的杂事  
         break;
-    case PACKET_TYPE_SYNC: //sync packet from master
+    case PACKET_TYPE_SYNC: //sync packet from master //同步时间  
         doStartTimer = ProcessRfPacket_SYNC(now,
             OtaIsFullRes ? &otaPktPtr->full.sync.sync : &otaPktPtr->std.sync)
             && !InBindingMode;
@@ -1753,11 +1754,11 @@ void setup()
         devicesRegister(ui_devices, ARRAY_SIZE(ui_devices));
         devicesInit();
 
-        setupBindingFromConfig();
+        setupBindingFromConfig();//从eeprom读取接收机配对的uid
 
-        FHSSrandomiseFHSSsequence(uidMacSeedGet());
+        FHSSrandomiseFHSSsequence(uidMacSeedGet());//使用配对的uid作为伪随机数种子生成跳频顺序表  
 
-        setupRadio();
+        setupRadio();//初始化RF模块，设置发射和接收中断。接收中断处理函数  
 
         if (connectionState != radioFailed)
         {
@@ -1766,6 +1767,8 @@ void setup()
 
             MspReceiver.SetDataToReceive(MspData, ELRS_MSP_BUFFER);
             Radio.RXnb();
+
+            //定时器 处理俩天线rssi值的判断，选择天线，设置跳频的频率，给发射机发回传信息 
             hwTimer::init(HWtimerCallbackTick, HWtimerCallbackTock);
         }
     }
@@ -1821,7 +1824,7 @@ void loop()
         LastSyncPacket = now;
     }
 
-    cycleRfMode(now);
+    cycleRfMode(now);//RF模块处理函数 
 
     uint32_t localLastValidPacket = LastValidPacket; // Required to prevent race condition due to LastValidPacket getting updated from ISR
     if ((connectionState == connected) && ((int32_t)ExpressLRS_currAirRate_RFperfParams->DisconnectTimeoutMs < (int32_t)(now - localLastValidPacket))) // check if we lost conn.
