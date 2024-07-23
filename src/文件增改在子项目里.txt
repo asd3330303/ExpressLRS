@@ -1,0 +1,42 @@
+D:\Desktop\project\ELRS\ExpressLRS\src\hardware\targets.json
+增加了
+            "lyx_dupletxesp": {
+                "product_name": "Generic ESP8285 Full-duplex 2.4GHz RX as TX",
+                "lua_name": "DupleTX ESP",
+                "layout_file": "lyx_2400_TX_8285_100mw.json",
+                "upload_methods": ["uart", "wifi"],
+                "min_version": "3.0.0",
+                "platform": "esp8285",
+                "firmware": "Unified_ESP8285_2400_TX",
+                "prior_target_name": "DIY_2400_TX_DUPLETX_ESP"
+            },
+
+
+
+
+
+新增文件：D:\Desktop\project\ELRS\ExpressLRS\src\hardware\TX\lyx_2400_TX_8285_100mw.json
+{
+    "serial_rx": 3,
+    "serial_tx": 1,
+    "radio_busy": 5,
+    "radio_dio1": 4,
+    "radio_miso": 12,
+    "radio_mosi": 13,
+    "radio_nss": 15,
+    "radio_rst": 2,
+    "radio_sck": 14,
+    "radio_dcdc": false,
+    "power_rxen": 9,
+    "power_txen": 10,
+    "power_lna_gain": 0,
+    "power_min": 0,
+    "power_high": 3,
+    "power_max": 3,
+    "power_default": 3,
+    "power_control": 0,
+    "power_values": [-10,-6,-3,1],
+    "button": 0,
+    "led_red": 16,
+    "led_red_invert": false
+}
