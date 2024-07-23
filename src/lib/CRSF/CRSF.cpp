@@ -306,7 +306,7 @@ void ICACHE_RAM_ATTR CRSF::JustSentRFpacket()
     uint32_t m = micros();
     int32_t delta = (int32_t)(m - last);
 
-    if (delta >= (int32_t)CRSF::RequestedRCpacketInterval)
+    if (delta >= (int32_t)CRSF::RequestedRCpacketInterval * 5)
     {
         // missing/late packet, force resync
         CRSF::OpenTXsyncOffset = -(delta % CRSF::RequestedRCpacketInterval) * 10;
