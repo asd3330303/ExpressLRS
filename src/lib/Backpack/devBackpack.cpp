@@ -91,7 +91,7 @@ void startPassthrough()
 
 void checkBackpackUpdate()
 {
-#if defined(GPIO_PIN_BACKPACK_EN)
+#if defined(GPIO_PIN_BACKPACK_EN) && !defined(LYX_GEMINI_VERSION)
     if (GPIO_PIN_BACKPACK_EN != UNDEF_PIN)
     {
         if (!digitalRead(0))
@@ -196,12 +196,22 @@ static void initialize()
 #if defined(GPIO_PIN_BACKPACK_EN)
     if (GPIO_PIN_BACKPACK_EN != UNDEF_PIN)
     {
+//printf("[%s]%d\n", __func__, __LINE__);
+#if defined(LYX_GEMINI_VERSION)
+
+#else
         pinMode(0, INPUT); // setup so we can detect pinchange for passthrough mode
+#endif
+//printf("[%s]%d\n", __func__, __LINE__);
         pinMode(GPIO_PIN_BACKPACK_BOOT, OUTPUT);
+//printf("[%s]%d\n", __func__, __LINE__);
         pinMode(GPIO_PIN_BACKPACK_EN, OUTPUT);
+//printf("[%s]%d\n", __func__, __LINE__);
         // Shut down the backpack via EN pin and hold it there until the first event()
         digitalWrite(GPIO_PIN_BACKPACK_EN, LOW);   // enable low
+//printf("[%s]%d\n", __func__, __LINE__);
         digitalWrite(GPIO_PIN_BACKPACK_BOOT, LOW); // bootloader pin high
+//printf("[%s]%d\n", __func__, __LINE__);
         delay(20);
         // Rely on event() to boot
     }

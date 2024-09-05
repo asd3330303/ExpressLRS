@@ -1,0 +1,6 @@
+d_reset write_flash -z --flash_mode dio --flash_freq 80m --flash_size 4MB 
+0x0000 D:\Desktop\project\ELRS\ExpressLRS\src\.pio\build\DIY_ESP32S3_2400_TX_1W_LYX_via_UART\bootloader.bin 
+0x8000 D:\Desktop\project\ELRS\ExpressLRS\src\.pio\build\DIY_ESP32S3_2400_TX_1W_LYX_via_UART\partitions.bin 
+0xe000 C:\Users\asd33\.platformio\packages\framework-arduinoespressif32@3.20006.221224\tools\partitions\boot_app0.bin 
+0x2d0000 C:\Users\asd33\.platformio\packages\framework-arduinoespressif32@3.20006.221224\variants/adafruit_feather_esp32s3_tft/tinyuf2.bin 
+0x10000 .pio\build\DIY_ESP32S3_2400_TX_1W_LYX_via_UART\firmware.bin

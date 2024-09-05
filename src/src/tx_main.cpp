@@ -1086,8 +1086,11 @@ static void setupSerial()
   Stream *serialPort;
   if (GPIO_PIN_DEBUG_RX != UNDEF_PIN && GPIO_PIN_DEBUG_TX != UNDEF_PIN && !portConflict)
   {
-    serialPort = new HardwareSerial(2);
+printf("[%s]%d\n", __func__, __LINE__);
+    serialPort = new HardwareSerial(1);
+printf("[%s]%d\n", __func__, __LINE__);
     ((HardwareSerial *)serialPort)->begin(BACKPACK_LOGGING_BAUD, SERIAL_8N1, GPIO_PIN_DEBUG_RX, GPIO_PIN_DEBUG_TX);
+printf("[%s]%d\n", __func__, __LINE__);
   }
   else
   {
@@ -1228,18 +1231,24 @@ void setup()
   if (setupHardwareFromOptions())
   {
     initUID();
+printf("[%s]%d\n", __func__, __LINE__);
     setupTarget();
+printf("[%s]%d\n", __func__, __LINE__);
     // Register the devices with the framework
     devicesRegister(ui_devices, ARRAY_SIZE(ui_devices));
+printf("[%s]%d\n", __func__, __LINE__);
     // Initialise the devices
     devicesInit();
     DBGLN("Initialised devices");
+printf("[%s]%d\n", __func__, __LINE__);
 
     FHSSrandomiseFHSSsequence(uidMacSeedGet());
 
+printf("[%s]%d\n", __func__, __LINE__);
     Radio.RXdoneCallback = &RXdoneISR;
     Radio.TXdoneCallback = &TXdoneISR;
 
+printf("[%s]%d\n", __func__, __LINE__);
     crsf.connected = &UARTconnected; // it will auto init when it detects UART connection
     if (!firmwareOptions.is_airport)
     {
@@ -1249,10 +1258,12 @@ void setup()
     hwTimer.callbackTock = &timerCallbackNormal;
     DBGLN("ExpressLRS TX Module Booted...");
 
+printf("[%s]%d\n", __func__, __LINE__);
     eeprom.Begin(); // Init the eeprom
     config.SetStorageProvider(&eeprom); // Pass pointer to the Config class for access to storage
     config.Load(); // Load the stored values from eeprom
 
+printf("[%s]%d\n", __func__, __LINE__);
     Radio.currFreq = GetInitialFreq(); //set frequency first or an error will occur!!!
     #if defined(RADIO_SX127X)
     //Radio.currSyncWord = UID[3];
@@ -1272,6 +1283,7 @@ void setup()
     }
     #endif
 
+printf("[%s]%d\n", __func__, __LINE__);
     if (!init_success)
     {
       connectionState = radioFailed;
@@ -1293,13 +1305,19 @@ void setup()
       connectionState = noCrossfire;
     }
   }
+printf("[%s]%d\n", __func__, __LINE__);
+
 
 #if defined(HAS_BUTTON)
   registerButtonFunction(ACTION_BIND, EnterBindingMode);
   registerButtonFunction(ACTION_INCREASE_POWER, cyclePower);
 #endif
 
+printf("[%s]%d\n", __func__, __LINE__);
+
   devicesStart();
+
+printf("[%s]%d\n", __func__, __LINE__);
 
   if (firmwareOptions.is_airport)
   {
@@ -1307,12 +1325,14 @@ void setup()
     config.SetMotionMode(0); // Ensure motion detection is off
     UARTconnected();
   }
+
+printf("[%s]%d\n", __func__, __LINE__);
 }
 
 void loop()
 {
   uint32_t now = millis();
-
+//printf("[%s]%d\n", __func__, __LINE__);
   HandleUARTout(); // Only used for non-CRSF output
 
   #if defined(USE_BLE_JOYSTICK)
@@ -1324,12 +1344,14 @@ void loop()
 
   if (connectionState < MODE_STATES)
   {
+//printf("[%s]%d\n", __func__, __LINE__);
     UpdateConnectDisconnectStatus();
   }
 
   // Update UI devices
   devicesUpdate(now);
 
+//printf("[%s]%d\n", __func__, __LINE__);
   // Not a device because it must be run on the loop core
   checkBackpackUpdate();
 
@@ -1344,9 +1366,11 @@ void loop()
 
   if (firmwareOptions.is_airport && connectionState == connected)
   {
+//printf("[%s]%d\n", __func__, __LINE__);
     auto size = std::min(AP_MAX_BUF_LEN - apInputBuffer.size(), TxUSB->available());
     if (size > 0)
     {
+//printf("[%s]%d\n", __func__, __LINE__);
       uint8_t buf[size];
       TxUSB->readBytes(buf, size);
       apInputBuffer.pushBytes(buf, size);
@@ -1355,19 +1379,24 @@ void loop()
 
   if (TxBackpack->available())
   {
+// printf("[%s]%d\n", __func__, __LINE__);
     if (msp.processReceivedByte(TxBackpack->read()))
     {
+// printf("[%s]%d\n", __func__, __LINE__);
       // Finished processing a complete packet
       ProcessMSPPacket(now, msp.getReceivedPacket());
       msp.markPacketReceived();
     }
+// printf("[%s]%d\n", __func__, __LINE__);
   }
 
+//printf("[%s]%d\n", __func__, __LINE__);
   if (connectionState > MODE_STATES)
   {
     return;
   }
 
+//printf("[%s]%d\n", __func__, __LINE__);
   CheckReadyToSend();
   CheckConfigChangePending();
   DynamicPower_Update(now);
@@ -1377,12 +1406,14 @@ void loop()
    * is elapsed. This keeps handset happy dispite of the telemetry ratio */
   if ((connectionState == connected) && (LastTLMpacketRecvMillis != 0) &&
       (now >= (uint32_t)(firmwareOptions.tlm_report_interval + TLMpacketReported))) {
+//printf("[%s]%d\n", __func__, __LINE__);
     crsf.sendLinkStatisticsToTX();
     TLMpacketReported = now;
   }
 
   if (TelemetryReceiver.HasFinishedData())
   {
+//printf("[%s]%d\n", __func__, __LINE__);
       crsf.sendTelemetryToTX(CRSFinBuffer);
       TelemetryReceiver.Unlock();
   }
@@ -1391,6 +1422,7 @@ void loop()
   static bool mspTransferActive = false;
   if (InBindingMode)
   {
+//printf("[%s]%d\n", __func__, __LINE__);
     // exit bind mode if package after some repeats
     if (BindingSendCount > 6) {
       ExitBindingMode();
@@ -1398,9 +1430,11 @@ void loop()
   }
   else if (!MspSender.IsActive())
   {
+//printf("[%s]%d\n", __func__, __LINE__);
     // sending is done and we need to update our flag
     if (mspTransferActive)
     {
+//printf("[%s]%d\n", __func__, __LINE__);
       // unlock buffer for msp messages
       crsf.UnlockMspMessage();
       mspTransferActive = false;
@@ -1408,12 +1442,14 @@ void loop()
     // we are not sending so look for next msp package
     else
     {
+//printf("[%s]%d\n", __func__, __LINE__);
       uint8_t* mspData;
       uint8_t mspLen;
       crsf.GetMspMessage(&mspData, &mspLen);
       // if we have a new msp package start sending
       if (mspData != nullptr)
       {
+//printf("[%s]%d\n", __func__, __LINE__);
         MspSender.SetDataToTransmit(mspData, mspLen);
         mspTransferActive = true;
       }

@@ -9,7 +9,11 @@
 #include <soc/uart_reg.h>
 // UART0 is used since for DupleTX we can connect directly through IO_MUX and not the Matrix
 // for better performance, and on other targets (mostly using pin 13), it always uses Matrix
+#if defined(LYX_GEMINI_VERSION)
+HardwareSerial CRSF::Port(2);
+#else
 HardwareSerial CRSF::Port(0);
+#endif
 portMUX_TYPE FIFOmux = portMUX_INITIALIZER_UNLOCKED;
 
 RTC_DATA_ATTR int rtcModelId = 0;
@@ -306,7 +310,7 @@ void ICACHE_RAM_ATTR CRSF::JustSentRFpacket()
     uint32_t m = micros();
     int32_t delta = (int32_t)(m - last);
 
-    if (delta >= (int32_t)CRSF::RequestedRCpacketInterval * 5)
+    if (delta >= (int32_t)CRSF::RequestedRCpacketInterval * 10)
     {
         // missing/late packet, force resync
         CRSF::OpenTXsyncOffset = -(delta % CRSF::RequestedRCpacketInterval) * 10;
@@ -793,7 +797,7 @@ void ICACHE_RAM_ATTR CRSF::adjustMaxPacketSize()
     DBGLN("Adjusted max packet size %u-%u", maxPacketBytes, maxPeriodBytes);
 }
 
-#if defined(PLATFORM_ESP32)
+#if defined(PLATFORM_ESP32) && !defined(LYX_GEMINI_VERSION)//因为 UART_AUTOBAUD_REG 函数 esp32s3没有
 uint32_t CRSF::autobaud()
 {
     static enum { INIT, MEASURED, INVERTED } state;

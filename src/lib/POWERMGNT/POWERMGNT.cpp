@@ -269,7 +269,7 @@ void POWERMGNT::setPower(PowerLevels_e Power)
     analogWrite(GPIO_PIN_RFamp_APC1, 3350); //0-4095 2.7V
     analogWrite(GPIO_PIN_RFamp_APC2, powerValues[Power - MinPower]);
 #else
-    #if defined(PLATFORM_ESP32)
+    #if defined(PLATFORM_ESP32) && !defined(LYX_GEMINI_VERSION)//esp32s3没有 dacWrite
     if (POWER_OUTPUT_DACWRITE)
     {
         if (POWER_OUTPUT_VALUES2 != nullptr)
@@ -280,7 +280,7 @@ void POWERMGNT::setPower(PowerLevels_e Power)
     }
     else
     #endif
-    if (POWER_OUTPUT_FIXED != -99)
+    if (POWER_OUTPUT_FIXED != -99)//固定功率
     {
         Radio.SetOutputPower(POWER_OUTPUT_FIXED);
     }
