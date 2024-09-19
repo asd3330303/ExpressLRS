@@ -458,6 +458,8 @@ void injectBackpackPanTiltRollData(uint32_t const now)
 #endif
 }
 
+uint16_t ant1_send_cnt = 0;
+uint16_t ant2_send_cnt = 0;
 void ICACHE_RAM_ATTR SendRCdataToRF()
 {
   uint32_t const now = millis();
@@ -544,16 +546,26 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
     {
     case TX_RADIO_MODE_GEMINI:
       transmittingRadio = SX12XX_Radio_All; // Gemini mode
+      ant1_send_cnt++;
+      ant2_send_cnt++;
       break;
     case TX_RADIO_MODE_ANT_1:
       transmittingRadio = SX12XX_Radio_1; // Single antenna tx and true diversity rx for tlm receiption.
+      ant1_send_cnt++;
       break;
     case TX_RADIO_MODE_ANT_2:
       transmittingRadio = SX12XX_Radio_2; // Single antenna tx and true diversity rx for tlm receiption.
+      ant2_send_cnt++;
       break;
     case TX_RADIO_MODE_SWITCH:
-      if(OtaNonce%2==0)   transmittingRadio = SX12XX_Radio_1; // Single antenna tx and true diversity rx for tlm receiption.
-      else   transmittingRadio = SX12XX_Radio_2; // Single antenna tx and true diversity rx for tlm receiption.
+      if(OtaNonce%2==0){
+        transmittingRadio = SX12XX_Radio_1; // Single antenna tx and true diversity rx for tlm receiption.
+        ant1_send_cnt++;
+      }   
+      else{
+        transmittingRadio = SX12XX_Radio_2; // Single antenna tx and true diversity rx for tlm receiption.
+        ant2_send_cnt++;
+      }   
       break;
     default:
       break;

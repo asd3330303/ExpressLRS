@@ -125,6 +125,8 @@ void OLEDDisplay::displaySplashScreen()
     u8g2->sendBuffer();
 }
 
+extern uint16_t ant1_send_cnt;
+extern uint16_t ant2_send_cnt;
 void OLEDDisplay::displayIdleScreen(uint8_t changed, uint8_t rate_index, uint8_t power_index, uint8_t ratio_index, uint8_t motion_index, uint8_t fan_index, bool dynamic, uint8_t running_power_index, uint8_t temperature, message_index_t message_index)
 {
     u8g2->clearBuffer();
@@ -154,14 +156,40 @@ void OLEDDisplay::displayIdleScreen(uint8_t changed, uint8_t rate_index, uint8_t
     }
     else
     {
-        u8g2->drawStr(0, 13, message_string[message_index]);
+        static char lyx_str[20] = {0};
+
+        if(0 == message_index){
+            memset(lyx_str, 0, sizeof(lyx_str));
+            sprintf(lyx_str, "%s  %2dC", message_string[message_index], temperature);
+            u8g2->drawStr(0, 13, lyx_str);
+        }else{
+            u8g2->drawStr(0, 13, message_string[message_index]);
+        }
+
+
         u8g2->drawStr(0, 45, getValue(STATE_PACKET, rate_index));
         u8g2->drawStr(70, 45, getValue(STATE_TELEMETRY_CURR, ratio_index));
         u8g2->drawStr(0, 60, power.c_str());
         u8g2->setFont(u8g2_font_profont10_mr);
-        u8g2->drawStr(70, 56, "TLM");
         u8g2->drawStr(0, 27, "Ver: ");
         u8g2->drawStr(38, 27, version);
+
+        static uint32_t last_1s = 0;
+        if(millis() - last_1s >= 1000){
+            last_1s = millis();
+            
+            memset(lyx_str, 0, sizeof(lyx_str));
+            sprintf(lyx_str, "ANT1:%d", ant1_send_cnt);
+            u8g2->drawStr(70, 55, lyx_str);
+
+            memset(lyx_str, 0, sizeof(lyx_str));
+            sprintf(lyx_str, "ANT2:%d", ant2_send_cnt);
+            u8g2->drawStr(70, 64, lyx_str);
+
+            ant1_send_cnt = 0;
+            ant2_send_cnt = 0;
+        }
+        
     }
     u8g2->sendBuffer();
 }

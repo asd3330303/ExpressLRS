@@ -106,8 +106,12 @@ static void displayIdleScreen(bool init)
         changed |= last_fan != config.GetFanMode() ? CHANGED_FAN : 0;
     }
 
-    if (changed)
+    static uint32_t last_1s_update = 0;
+
+    if (changed || now - last_1s_update >= 1000)
     {
+        last_1s_update = now;
+
         last_message = disp_message;
         last_temperature = temperature;
         last_rate = config.GetRate();
