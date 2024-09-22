@@ -261,6 +261,7 @@ void disableVTxSpi()
 
 static void initialize()
 {
+printf("[%s:%s]%d\n", __FILE__,  __func__, __LINE__);
     #if defined(TARGET_UNIFIED_RX)
     VpdSetPointArray25mW = VPD_VALUES_25MW;
     VpdSetPointArray100mW = VPD_VALUES_100MW;

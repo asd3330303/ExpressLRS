@@ -785,6 +785,7 @@ static void HandleContinuousWave(AsyncWebServerRequest *request) {
 
 static void initialize()
 {
+printf("[%s:%s]%d\n", __FILE__,  __func__, __LINE__);
   wifiStarted = false;
   WiFi.disconnect(true);
   WiFi.mode(WIFI_OFF);

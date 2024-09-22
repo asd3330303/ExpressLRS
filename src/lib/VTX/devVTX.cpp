@@ -98,6 +98,7 @@ static void VtxConfigToMSPOut()
 
 static void initialize()
 {
+printf("[%s:%s]%d\n", __FILE__,  __func__, __LINE__);
     registerButtonFunction(ACTION_SEND_VTX, VtxTriggerSend);
 }
 

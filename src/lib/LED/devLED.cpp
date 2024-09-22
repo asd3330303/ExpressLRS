@@ -83,6 +83,7 @@ static uint16_t flashLED(uint8_t pin, uint8_t pin_inverted, const uint8_t durati
 
 static void initialize()
 {
+printf("[%s:%s]%d\n", __FILE__,  __func__, __LINE__);
     // TODO for future PR, remove TARGET_TX, TARGET_RX, and TARGET_TX_FM30 defines.
     #if defined(TARGET_TX)
         if (GPIO_PIN_LED_BLUE != UNDEF_PIN)

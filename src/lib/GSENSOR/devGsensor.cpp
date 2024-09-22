@@ -43,6 +43,7 @@ static bool gSensorOk = false;
 
 static void initialize()
 {
+printf("[%s:%s]%d\n", __FILE__,  __func__, __LINE__);
     if (OPT_HAS_GSENSOR && GPIO_PIN_SCL != UNDEF_PIN && GPIO_PIN_SDA != UNDEF_PIN)
     {
         gSensorOk = gsensor.init();

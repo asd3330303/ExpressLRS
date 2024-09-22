@@ -119,6 +119,7 @@ static int servosUpdate(unsigned long now)
 
 static void initialize()
 {
+printf("[%s:%s]%d\n", __FILE__,  __func__, __LINE__);
     if (!OPT_HAS_SERVO_OUTPUT)
     {
         return;

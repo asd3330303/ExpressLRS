@@ -356,6 +356,7 @@ static int blinkyUpdate() {
 
 static void initialize()
 {
+printf("[%s:%s]%d\n", __FILE__,  __func__, __LINE__);
     if (GPIO_PIN_LED_WS2812 != UNDEF_PIN)
     {
         #if defined(PLATFORM_ESP32) || defined(PLATFORM_ESP8266)

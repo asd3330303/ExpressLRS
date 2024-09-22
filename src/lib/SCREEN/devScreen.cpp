@@ -134,6 +134,7 @@ static int handle(void)
 
 static void initialize()
 {
+printf("[%s:%s]%d\n", __FILE__,  __func__, __LINE__);
 #ifdef HAS_FIVE_WAY_BUTTON
     fivewaybutton.init();
 #endif

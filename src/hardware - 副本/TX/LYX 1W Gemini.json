@@ -31,8 +31,8 @@
     "led_rgb": 0,
     "led_rgb_isgrb": true,
 
-    "screen_sck": 42,
-    "screen_sda": 41,
+    "i2c_scl": 42,
+    "i2c_sda": 41,
     "screen_type": 1,
     "screen_reversed": 0,
 
