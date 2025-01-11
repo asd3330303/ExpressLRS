@@ -3,9 +3,9 @@
 
 const char *Display::message_string[] = {
     "ExpressLRS",
-    "[  Connected  ]",
-    "[  ! Armed !  ]",
-    "[  Mismatch!  ]"
+    "Connected ",
+    "[ Armed ] ",
+    "[Mismatch]"
 };
 
 const char *Display::main_menu_strings[][2] = {

@@ -1,0 +1,9 @@
+用vscode编译
+    需要装platformio，之后选择环境 DIY_ESP32S3_2400_TX_1W_LYX_via_UART
+    编译-烧录就好
+
+用expresslrs configurator工具
+    选择本地文件路径 D:\Desktop\project\ELRS\ExpressLRS\src\
+    设备分类 DIY devices 2.4 GHz
+    设备 DIY ESP32-S3 DevKit Gemini 2.4Ghz TX 1W LYX
+    勾选 ism ，其他默认就好

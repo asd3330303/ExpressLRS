@@ -158,13 +158,9 @@ void OLEDDisplay::displayIdleScreen(uint8_t changed, uint8_t rate_index, uint8_t
     {
         static char lyx_str[20] = {0};
 
-        if(0 == message_index){
-            memset(lyx_str, 0, sizeof(lyx_str));
-            sprintf(lyx_str, "%s  %2dC", message_string[message_index], temperature);
-            u8g2->drawStr(0, 13, lyx_str);
-        }else{
-            u8g2->drawStr(0, 13, message_string[message_index]);
-        }
+        memset(lyx_str, 0, sizeof(lyx_str));
+        sprintf(lyx_str, "%s  %2dC", message_string[message_index], temperature);
+        u8g2->drawStr(0, 13, lyx_str);
 
 
         u8g2->drawStr(0, 45, getValue(STATE_PACKET, rate_index));
